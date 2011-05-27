@@ -9,24 +9,6 @@ module OnTheSpot
     # controller action is added that will allow to edit fields in place
     module ClassMethods
       def can_edit_on_the_spot
-        _routes = BizeeBee::Application.routes
-        _routes.disable_clear_and_finalize = true
-        _routes.clear!
-        
-        _routes.draw do
-          resources self.controller_path do
-            collection do
-              put :update_attribute_on_the_spot
-            end
-          end
-        end
-
-        BizeeBee::Application.routes_reloader.paths.each { |path| load(path) }
-
-        _routes.finalize!
-      ensure
-        _routes.disable_clear_and_finalize = false
-            
         define_method :update_attribute_on_the_spot do
           klass, field, id = params[:id].split('__')
           select_data = params[:select_array]
@@ -42,6 +24,28 @@ module OnTheSpot
             render :text => object.errors.full_messages.join("\n"), :status => 422
           end
         end
+
+        ActionController::Base.send :before_filter, lambda {
+          _routes = BizeeBee::Application.routes
+          _routes.disable_clear_and_finalize = true
+          _routes.clear!
+           
+          _controller_path = self.controller_path
+          logger.debug("-1.#{_controller_path}-")
+
+          _routes.draw do
+            resources _controller_path do
+              collection do
+                put :update_attribute_on_the_spot
+              end
+            end
+          end
+
+          BizeeBee::Application.routes_reloader.paths.each { |path| load(path) }
+
+          _routes.finalize!
+          _routes.disable_clear_and_finalize = false
+        }
       end
     end
     
