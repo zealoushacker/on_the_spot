@@ -25,7 +25,7 @@ module OnTheSpot
           end
         end
 
-        ActionController::Base.send :before_filter, lambda {
+        self.send :before_filter, lambda {
           _routes = BizeeBee::Application.routes
           _routes.disable_clear_and_finalize = true
           _routes.clear!
