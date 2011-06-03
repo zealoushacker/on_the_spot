@@ -26,25 +26,27 @@ module OnTheSpot
         end
 
         self.send :before_filter, lambda {
-          _routes = BizeeBee::Application.routes
-          _routes.disable_clear_and_finalize = true
-          _routes.clear!
-           
           _controller_path = self.controller_path
-          logger.debug("-1.#{_controller_path}-")
+          _routes = BizeeBee::Application.routes
+          if _routes.routes.find { |r| r.path =~ /#{_controller_path}\/update_attribute_on_the_spot/}.nil?
+            _routes.disable_clear_and_finalize = true
+            _routes.clear!
+             
+            logger.debug("-1.#{_controller_path}-")
 
-          _routes.draw do
-            resources _controller_path do
-              collection do
-                put :update_attribute_on_the_spot
+            _routes.draw do
+              resources _controller_path do
+                collection do
+                  put :update_attribute_on_the_spot
+                end
               end
             end
+
+            BizeeBee::Application.routes_reloader.paths.each { |path| load(path) }
+
+            _routes.finalize!
+            _routes.disable_clear_and_finalize = false
           end
-
-          BizeeBee::Application.routes_reloader.paths.each { |path| load(path) }
-
-          _routes.finalize!
-          _routes.disable_clear_and_finalize = false
         }
       end
     end
